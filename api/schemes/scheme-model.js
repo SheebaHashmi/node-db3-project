@@ -4,6 +4,7 @@ async function find() { // EXERCISE A
   /*
     1A- Study the SQL query below running it in SQLite Studio against `data/schemes.db3`.
     What happens if we change from a LEFT join to an INNER join?
+    Ans: The scheme(scheme_id:7) that has zero steps doesn't appear since the number of steps value is 'NULL' for that scheme 
 
       SELECT
           sc.*,
@@ -17,7 +18,14 @@ async function find() { // EXERCISE A
     2A- When you have a grasp on the query go ahead and build it in Knex.
     Return from this function the resulting dataset.
   */
-  return db('schemes')
+  const rows = await db('schemes as sc')
+      .leftJoin('steps as st','sc.scheme_id','st.scheme_id')
+      .select('sc.*')
+      .count('st.step_id as number_of_steps')
+      .groupBy('sc.scheme_id')
+      .orderBy('sc.scheme_id','asc')
+  
+  return rows;
 }
 
 
@@ -86,8 +94,26 @@ async function findById(scheme_id) { // EXERCISE B
         "scheme_name": "Have Fun!",
         "steps": []
       }
+
+      
   */
- return 'foo'
+  const rows = await db('schemes as sc')
+      .leftJoin('steps as st','sc.scheme_id','st.scheme_id')
+      .select('sc.scheme_name','st.*','sc.scheme_id')
+      .where('sc.scheme_id',scheme_id)
+      .orderBy('st.step_number', 'ASC')
+
+  const result = {
+    scheme_id: rows[0].scheme_id,
+    scheme_name:rows[0].scheme_name,
+    steps: rows.reduce((steps,step) => {
+      if(!step.step_id) return steps
+
+      const {step_id,step_number,instructions} = step
+      return steps.concat({step_id,step_number,instructions})
+    },[])
+  }
+  return result;
 }
 
 function findSteps(scheme_id) { // EXERCISE C
