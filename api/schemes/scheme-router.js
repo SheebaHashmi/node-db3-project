@@ -132,7 +132,7 @@ router.post('/', validateScheme, (req, res, next) => {
 router.post('/:scheme_id/steps', checkSchemeId, validateStep, (req, res, next) => {
   const step = req.body
   const { scheme_id } = req.params
-
+  
   Schemes.addStep(scheme_id, step)
     .then(allSteps => {
       res.status(201).json(allSteps)
